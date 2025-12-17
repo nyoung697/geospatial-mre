@@ -6,6 +6,42 @@ import { Id } from './_generated/dataModel';
 
 const geospatial = new GeospatialIndex(components.geospatial)
 
+const data = [
+  {
+    name: "Miracles",
+    point: {latitude: 51.0832877,longitude: -114.1278038},
+    startTime: 720,
+    weekday: 2
+  },
+  {
+    name: "AMNA",
+    point: {latitude: 51.02723,longitude: -113.9928005},
+    startTime: 480,
+    weekday: 3
+  },
+  {
+    name: "Courage",
+    point: {latitude: 51.0117555,longitude: -114.0837796},
+    startTime: 1140,
+    weekday: 3
+  },
+  {
+    name: "Stepping",
+    point: { latitude: 50.95648, longitude: -114.0862 },
+    startTime: 1140,
+    weekday: 3
+  },
+]
+
+export const loadData = mutation({
+  handler: async (ctx) => {
+    for (const item of data) {
+      const meetingId = await ctx.db.insert('meetings', item)
+      await geospatial.insert(ctx, meetingId, item.point, { weekday: item.weekday }, item.startTime)
+    }
+  }
+})
+
 export const insert = mutation({
   args: {
     name: v.string(),
@@ -84,20 +120,3 @@ export const get = query({
     return out;
   },
 })
-
-// tiny, fast haversine (meters)
-function haversineMeters(
-  a: { lat: number; lng: number },
-  b: { lat: number; lng: number },
-) {
-  const R = 6371000; // m
-  const dLat = ((b.lat - a.lat) * Math.PI) / 180;
-  const dLng = ((b.lng - a.lng) * Math.PI) / 180;
-  const la1 = (a.lat * Math.PI) / 180;
-  const la2 = (b.lat * Math.PI) / 180;
-  const sinDLat = Math.sin(dLat / 2);
-  const sinDLng = Math.sin(dLng / 2);
-  const h =
-    sinDLat * sinDLat + Math.cos(la1) * Math.cos(la2) * sinDLng * sinDLng;
-  return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
-}
